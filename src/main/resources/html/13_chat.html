@@ -1,0 +1,277 @@
+<!DOCTYPE HTML><html lang="ko" data-theme="light"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>실시간 채팅 - 통합 사내 그룹웨어</title>
+  <meta name="description" content="사내 그룹웨어 시스템 - 실시간 채팅">
+
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&amp;family=Inter:wght@300;400;500;600;700;800&amp;family=Noto+Sans+KR:wght@300;400;500;700;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ==========================================
+       CORE APPLICATION WRAPPER
+       (header/sidebar injected by common.js initPage())
+       ========================================== -->
+  <div class="app-wrapper" id="appWrapper"><header class="header">
+      <div class="header-left">
+        <a href="02_main.html" class="logo" style="text-decoration:none;">
+          <div class="logo-box"><i class="fa-solid fa-cubes"></i></div>
+          <span style="margin-left: 0.5rem;">GROUPWARE</span>
+        </a>      </div>
+
+      <div class="header-right">
+        <a class="icon-btn" href="08_mail.html" title="받은 메일함">
+          <i class="fa-solid fa-envelope"></i>
+          <span class="badge" id="headerMsgBadge" style="display: flex;">4</span>
+        </a>
+        <a class="icon-btn" href="13_chat.html" title="실시간 채팅">
+          <i class="fa-solid fa-comment-dots"></i>
+          <span class="badge" id="headerChatBadge" style="display: flex;">3</span>
+        </a>
+        <a class="user-dropdown" href="09_mypage.html">
+          <div class="user-avatar" id="headerAvatar">홍</div>
+          <div class="user-details">
+            <span class="user-name-text" id="headerName">홍길동</span>
+            <span class="user-role-text" id="headerDept">개발팀 · 사원</span>
+          </div>
+        </a>
+        <a class="icon-btn" href="01_login.html" title="로그아웃" style="color: var(--color-danger); border-color: rgba(248,113,113,0.2);">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Navigation Body -->
+    <div class="main-body" id="mainBody"><aside class="sidebar">
+      <ul class="sidebar-menu">
+        <li class="sidebar-item" id="menu-dashboard"><a href="02_main.html"><i class="fa-solid fa-chart-line"></i> 대시보드</a></li>
+
+        <li class="sidebar-group-label">업무</li>
+        <li class="sidebar-item sub" id="menu-calendar"><a href="03_calendar.html"><i class="fa-solid fa-calendar-days"></i> 일정 캘린더</a></li>
+        <li class="sidebar-item sub" id="menu-approval"><a href="06_approval.html"><i class="fa-solid fa-signature"></i> 전자결재</a></li>
+        <li class="sidebar-item sub" id="menu-notice"><a href="04_notice.html"><i class="fa-solid fa-bullhorn"></i> 공지사항</a></li>
+        <li class="sidebar-item sub" id="menu-archive"><a href="05_archive.html"><i class="fa-solid fa-file-shield"></i> 자료실</a></li>
+
+        <li class="sidebar-group-label">조직 · 소통</li>
+        <li class="sidebar-item sub" id="menu-org"><a href="07_org.html"><i class="fa-solid fa-sitemap"></i> 조직도</a></li>
+        <li class="sidebar-item sub" id="menu-mail"><a href="08_mail.html"><i class="fa-solid fa-paper-plane"></i> 메일함</a></li>
+        <li class="sidebar-item sub active" id="menu-chat"><a href="13_chat.html"><i class="fa-solid fa-comment-dots"></i> 실시간 채팅</a></li>
+
+        <li class="sidebar-group-label">근태관리</li>
+        <li class="sidebar-item sub" id="menu-attendance"><a href="10_attendance.html"><i class="fa-solid fa-clock"></i> 출결 현황</a></li>
+
+        <li class="sidebar-item" id="menu-mypage"><a href="09_mypage.html"><i class="fa-solid fa-user-gear"></i> 마이페이지</a></li>
+
+        <li class="sidebar-group-label" id="adminGroupLabel" style="display: none;">관리자</li>
+        <li class="sidebar-item sub" id="menu-admin" style="display: none;"><a href="11_admin.html"><i class="fa-solid fa-gears"></i> 계정·인사정보 관리</a></li>
+        <li class="sidebar-item sub" id="menu-adminAttendance" style="display: none;"><a href="12_admin_attendance.html"><i class="fa-solid fa-user-clock"></i> 직원 출결 관리</a></li>
+      </ul>
+    </aside>
+
+      <!-- Center Dynamic View Content Area -->
+      <main class="view-content">
+
+        <!-- ==========================================
+             SCREEN: REAL-TIME CHAT (김우주 팀장 1:1 대화방 선택 상태)
+             ========================================== -->
+        <div class="card">
+          <div class="chat-container">
+
+            <!-- Left: Room List -->
+            <div class="chat-sidebar">
+              <div class="chat-sidebar-header">
+                <h3>실시간 채팅</h3>
+                <a class="icon-btn" href="13-1_chat_new_modal.html" title="새 대화 시작"><i class="fa-solid fa-square-pen"></i></a>
+              </div>
+              <input type="text" class="form-control" placeholder="대화 상대 또는 대화방 검색">
+
+              <div class="chat-filter-tabs">
+                <div class="chat-filter-tab active">전체</div>
+                <div class="chat-filter-tab">개인</div>
+                <div class="chat-filter-tab">그룹</div>
+              </div>
+
+              <div class="chat-room-list">
+                <div class="chat-room-item active">
+                  <div class="chat-room-avatar">우<span class="chat-online-dot"></span></div>
+                  <div class="chat-room-info">
+                    <div class="chat-room-name-row">
+                      <span class="chat-room-name">김우주 팀장</span>
+                      <span class="chat-room-time">오후 2:41</span>
+                    </div>
+                    <div class="chat-room-preview-row">
+                      <span class="chat-room-preview">네, 확인하고 회신드릴게요!</span>
+                      <span class="chat-room-unread">2</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-room-item">
+                  <div class="chat-room-avatar group">그</div>
+                  <div class="chat-room-info">
+                    <div class="chat-room-name-row">
+                      <span class="chat-room-name">그룹웨어 개편 프로젝트 TF (4)</span>
+                      <span class="chat-room-time">오후 1:05</span>
+                    </div>
+                    <div class="chat-room-preview-row">
+                      <span class="chat-room-preview">이다니엘: 회의는 3시에 진행할게요</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-room-item">
+                  <div class="chat-room-avatar">이</div>
+                  <div class="chat-room-info">
+                    <div class="chat-room-name-row">
+                      <span class="chat-room-name">이다니엘 팀장</span>
+                      <span class="chat-room-time">어제</span>
+                    </div>
+                    <div class="chat-room-preview-row">
+                      <span class="chat-room-preview">자료 잘 받았습니다 감사해요</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-room-item">
+                  <div class="chat-room-avatar group">신</div>
+                  <div class="chat-room-info">
+                    <div class="chat-room-name-row">
+                      <span class="chat-room-name">신규 프로젝트 TF (5)</span>
+                      <span class="chat-room-time">어제</span>
+                    </div>
+                    <div class="chat-room-preview-row">
+                      <span class="chat-room-preview">김영훈: 기획서 파일 업로드했습니다.</span>
+                      <span class="chat-room-unread">2</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-room-item">
+                  <div class="chat-room-avatar">김</div>
+                  <div class="chat-room-info">
+                    <div class="chat-room-name-row">
+                      <span class="chat-room-name">김영훈 부서장</span>
+                      <span class="chat-room-time">2일 전</span>
+                    </div>
+                    <div class="chat-room-preview-row">
+                      <span class="chat-room-preview">결재 검토 부탁드립니다.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Message Thread -->
+            <div class="chat-main">
+              <div class="chat-thread-header">
+                <div class="chat-thread-who">
+                  <div class="chat-room-avatar">우<span class="chat-online-dot"></span></div>
+                  <div>
+                    <div style="font-weight:700;">김우주 팀장</div>
+                    <div class="chat-thread-status">개발팀 · 접속 중</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-messages">
+                <div class="chat-date-divider"><span>2026년 7월 1일 수요일</span></div>
+
+                <div class="chat-row in">
+                  <div class="chat-room-avatar">우</div>
+                  <div class="chat-bubble-col">
+                    <span class="chat-sender-name">김우주 팀장</span>
+                    <div class="chat-bubble-meta">
+                      <div class="chat-bubble">오늘 오후 미팅 자료 준비되셨나요?</div>
+                      <span class="chat-bubble-time">오후 2:32</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-row out">
+                  <div class="chat-room-avatar">홍</div>
+                  <div class="chat-bubble-col">
+                    <div class="chat-bubble-meta">
+                      <div class="chat-bubble">네 팀장님, 지금 마무리 중입니다. 30분 내로 공유드릴게요!</div>
+                      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.15rem;">
+                        <span class="chat-bubble-read">읽음</span>
+                        <span class="chat-bubble-time">오후 2:35</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-row out">
+                  <div class="chat-room-avatar">홍</div>
+                  <div class="chat-bubble-col">
+                    <div class="chat-bubble-meta">
+                      <div class="chat-bubble-file"><i class="fa-solid fa-file-arrow-down" style="color:var(--color-primary);"></i> <div><div style="font-weight:600;">3분기_기획안_v2.pptx</div><div style="color:var(--text-muted); font-size:0.75rem;">4.2 MB</div></div></div>
+                      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.15rem;">
+                        <span class="chat-bubble-read">읽음</span>
+                        <span class="chat-bubble-time">오후 2:36</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-system-message">— 이다니엘님이 대화방에 참여했습니다 —</div>
+
+                <div class="chat-row in">
+                  <div class="chat-room-avatar">우</div>
+                  <div class="chat-bubble-col">
+                    <span class="chat-sender-name">김우주 팀장</span>
+                    <div class="chat-bubble-meta">
+                      <div class="chat-bubble">좋습니다, 확인해볼게요 👍</div>
+                      <span class="chat-bubble-time">오후 2:40</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-row in">
+                  <div class="chat-room-avatar">우</div>
+                  <div class="chat-bubble-col">
+                    <span class="chat-sender-name">김우주 팀장</span>
+                    <div class="chat-bubble-meta">
+                      <div class="chat-bubble">네, 확인하고 회신드릴게요!</div>
+                      <span class="chat-bubble-time">오후 2:41</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-row in">
+                  <div class="chat-room-avatar">우</div>
+                  <div class="chat-bubble-col">
+                    <span class="chat-sender-name">김우주 팀장</span>
+                    <div class="chat-typing"><span></span><span></span><span></span></div>
+                  </div>
+                </div>
+              </div>
+
+              <form class="chat-input-bar">
+                <a class="icon-btn" title="파일 첨부"><i class="fa-solid fa-paperclip"></i></a>
+                <input type="text" class="form-control" placeholder="메시지를 입력하세요">
+                <button type="button" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <script src="js/caht.js?v=20260705"></script>
+
+</body></html>

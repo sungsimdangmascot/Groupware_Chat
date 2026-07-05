@@ -1,0 +1,196 @@
+<!DOCTYPE HTML><html lang="ko" data-theme="light"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>실시간 채팅 - 통합 사내 그룹웨어</title>
+  <meta name="description" content="사내 그룹웨어 시스템 - 실시간 채팅">
+
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&amp;family=Inter:wght@300;400;500;600;700;800&amp;family=Noto+Sans+KR:wght@300;400;500;700;900&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ==========================================
+       참고 화면: 채팅 목록 상단의 "새 대화 시작" 버튼을 눌렀을 때 뜨는
+       부서 → 직원 선택 모달 오픈 상태 (개발팀 선택 + 정진국 사원 체크 예시)
+       ========================================== -->
+  <div class="app-wrapper" id="appWrapper"><header class="header">
+      <div class="header-left">
+        <a href="02_main.html" class="logo" style="text-decoration:none;">
+          <div class="logo-box"><i class="fa-solid fa-cubes"></i></div>
+          <span style="margin-left: 0.5rem;">GROUPWARE</span>
+        </a>      </div>
+
+      <div class="header-right">
+        <a class="icon-btn" href="08_mail.html" title="받은 메일함">
+          <i class="fa-solid fa-envelope"></i>
+          <span class="badge" id="headerMsgBadge" style="display: flex;">4</span>
+        </a>
+        <a class="icon-btn" href="13_chat.html" title="실시간 채팅">
+          <i class="fa-solid fa-comment-dots"></i>
+          <span class="badge" id="headerChatBadge" style="display: flex;">3</span>
+        </a>
+        <a class="user-dropdown" href="09_mypage.html">
+          <div class="user-avatar" id="headerAvatar">홍</div>
+          <div class="user-details">
+            <span class="user-name-text" id="headerName">홍길동</span>
+            <span class="user-role-text" id="headerDept">개발팀 · 사원</span>
+          </div>
+        </a>
+        <a class="icon-btn" href="01_login.html" title="로그아웃" style="color: var(--color-danger); border-color: rgba(248,113,113,0.2);">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Navigation Body -->
+    <div class="main-body" id="mainBody"><aside class="sidebar">
+      <ul class="sidebar-menu">
+        <li class="sidebar-item" id="menu-dashboard"><a href="02_main.html"><i class="fa-solid fa-chart-line"></i> 대시보드</a></li>
+
+        <li class="sidebar-group-label">업무</li>
+        <li class="sidebar-item sub" id="menu-calendar"><a href="03_calendar.html"><i class="fa-solid fa-calendar-days"></i> 일정 캘린더</a></li>
+        <li class="sidebar-item sub" id="menu-approval"><a href="06_approval.html"><i class="fa-solid fa-signature"></i> 전자결재</a></li>
+        <li class="sidebar-item sub" id="menu-notice"><a href="04_notice.html"><i class="fa-solid fa-bullhorn"></i> 공지사항</a></li>
+        <li class="sidebar-item sub" id="menu-archive"><a href="05_archive.html"><i class="fa-solid fa-file-shield"></i> 자료실</a></li>
+
+        <li class="sidebar-group-label">조직 · 소통</li>
+        <li class="sidebar-item sub" id="menu-org"><a href="07_org.html"><i class="fa-solid fa-sitemap"></i> 조직도</a></li>
+        <li class="sidebar-item sub" id="menu-mail"><a href="08_mail.html"><i class="fa-solid fa-paper-plane"></i> 메일함</a></li>
+        <li class="sidebar-item sub active" id="menu-chat"><a href="13_chat.html"><i class="fa-solid fa-comment-dots"></i> 실시간 채팅</a></li>
+
+        <li class="sidebar-group-label">근태관리</li>
+        <li class="sidebar-item sub" id="menu-attendance"><a href="10_attendance.html"><i class="fa-solid fa-clock"></i> 출결 현황</a></li>
+
+        <li class="sidebar-item" id="menu-mypage"><a href="09_mypage.html"><i class="fa-solid fa-user-gear"></i> 마이페이지</a></li>
+
+        <li class="sidebar-group-label" id="adminGroupLabel" style="display: none;">관리자</li>
+        <li class="sidebar-item sub" id="menu-admin" style="display: none;"><a href="11_admin.html"><i class="fa-solid fa-gears"></i> 계정·인사정보 관리</a></li>
+        <li class="sidebar-item sub" id="menu-adminAttendance" style="display: none;"><a href="12_admin_attendance.html"><i class="fa-solid fa-user-clock"></i> 직원 출결 관리</a></li>
+      </ul>
+    </aside>
+
+      <!-- Center Dynamic View Content Area -->
+      <main class="view-content">
+
+        <!-- ==========================================
+             SCREEN: REAL-TIME CHAT
+             ========================================== -->
+        <div class="card">
+          <div class="chat-container">
+            <div class="chat-sidebar">
+              <div class="chat-sidebar-header">
+                <h3>실시간 채팅</h3>
+                <a class="icon-btn" href="13-1_chat_new_modal.html" title="새 대화 시작"><i class="fa-solid fa-square-pen"></i></a>
+              </div>
+              <input type="text" class="form-control" placeholder="대화 상대 또는 대화방 검색">
+              <div class="chat-filter-tabs">
+                <div class="chat-filter-tab active">전체</div>
+                <div class="chat-filter-tab">개인</div>
+                <div class="chat-filter-tab">그룹</div>
+              </div>
+              <div class="chat-room-list">
+                <div class="chat-room-item active">
+                  <div class="chat-room-avatar">우<span class="chat-online-dot"></span></div>
+                  <div class="chat-room-info">
+                    <div class="chat-room-name-row"><span class="chat-room-name">김우주 팀장</span><span class="chat-room-time">오후 2:41</span></div>
+                    <div class="chat-room-preview-row"><span class="chat-room-preview">네, 확인하고 회신드릴게요!</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="chat-main">
+              <div class="chat-thread-header">
+                <div class="chat-thread-who">
+                  <div class="chat-room-avatar">우<span class="chat-online-dot"></span></div>
+                  <div>
+                    <div style="font-weight:700;">김우주 팀장</div>
+                    <div class="chat-thread-status">개발팀 · 접속 중</div>
+                  </div>
+                </div>
+              </div>
+              <div class="chat-messages"></div>
+              <form class="chat-input-bar">
+                <a class="icon-btn" title="파일 첨부"><i class="fa-solid fa-paperclip"></i></a>
+                <input type="text" class="form-control" placeholder="메시지를 입력하세요">
+                <button type="button" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       DYNAMIC MODALS (used on this page) - OPEN 상태 참고
+       ========================================== -->
+  <div class="modal-overlay active" id="modalOverlay">
+
+    <!-- New Chat Modal (열림 상태 - 개발팀 필터 + 정진국 사원 선택 예시) -->
+    <div class="modal-content" id="modal-new-chat" style="display:block; max-width: 720px;">
+      <div class="modal-header">
+        <h3>새 대화 시작</h3>
+        <a class="icon-btn" href="13_chat.html"><i class="fa-solid fa-xmark"></i></a>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">부서를 클릭해 직원 목록을 필터링하고, 1명을 선택하면 1:1 대화, 2명 이상을 선택하면 그룹 대화가 시작됩니다.</p>
+        <div class="org-container" style="height: 360px;">
+          <div class="org-tree">
+            <ul style="list-style:none;">
+              <li><a class="org-node">전체보기</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">인사팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">기획팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node active">개발팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">디자인팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">총무팀</a></li>
+            </ul>
+          </div>
+          <div class="org-members">
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 50px;"></th>
+                    <th>이름</th>
+                    <th>부서</th>
+                    <th>직급</th>
+                    <th>상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="text-align:center;"><input type="checkbox" checked></td>
+                    <td><strong>김우주</strong></td>
+                    <td>개발팀</td>
+                    <td><span class="badge badge-primary">팀장</span></td>
+                    <td><span class="badge badge-success">접속 중</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-secondary" href="13_chat.html">취소</a>
+        <a class="btn btn-primary" href="13_chat.html">대화 시작</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <script src="js/caht.js?v=20260705"></script>
+  
+</body></html>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.Groupware_Chat.Mapper.ChatMapper">
+
+    <select id="selectFirstActiveEmployeeId" resultType="java.lang.Integer">
+        SELECT EMPLOYEE_ID
+        FROM EMPLOYEE
+        WHERE EMPLOYEE_STATUS = 'ACTIVE'
+        ORDER BY EMPLOYEE_ID
+        LIMIT 1
+    </select>
+
+    <select id="selectOtherActiveEmployeeId" resultType="java.lang.Integer">
+        SELECT EMPLOYEE_ID
+        FROM EMPLOYEE
+        WHERE EMPLOYEE_STATUS = 'ACTIVE'
+          AND EMPLOYEE_ID != #{employeeId}
+        ORDER BY EMPLOYEE_ID
+        LIMIT 1
+    </select>
+
+    <select id="existsEmployee" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM EMPLOYEE
+        WHERE EMPLOYEE_ID = #{employeeId}
+          AND EMPLOYEE_STATUS = 'ACTIVE'
+    </select>
+
+    <!-- ===================== 채팅방 ===================== -->
+
+    <!-- 내가 속한 채팅방 목록 + 마지막 메시지 + 안읽음 개수 + (DM인 경우) 상대방 정보 -->
+    <select id="selectMyRooms" resultType="com.example.Groupware_Chat.DTO.ChatRoomDTO">
+        SELECT
+            r.ROOM_ID        AS roomId,
+            r.ROOM_TYPE      AS roomType,
+            r.ROOM_NAME      AS roomName,
+            r.CREATED_AT     AS createdAt,
+            lm.CONTENT       AS lastMessage,
+            lm.SENT_AT       AS lastMessageTime,
+            (SELECT COUNT(*) FROM CHAT_MESSAGE m
+              WHERE m.ROOM_ID = r.ROOM_ID
+                AND (rm.LAST_READ_MESSAGE_ID IS NULL OR m.MESSAGE_ID > rm.LAST_READ_MESSAGE_ID)
+                AND (m.SENDER_ID IS NULL OR m.SENDER_ID != #{employeeId})
+            ) AS unreadCount,
+            (SELECT COUNT(*) FROM CHAT_ROOM_MEMBER cm2 WHERE cm2.ROOM_ID = r.ROOM_ID) AS memberCount,
+            other.EMPLOYEE_ID   AS otherEmployeeId,
+            other.EMPLOYEE_NAME AS otherEmployeeName,
+            od.DEPT_NAME        AS otherDeptName,
+            op.POSITION_NAME    AS otherPositionName
+        FROM CHAT_ROOM r
+        JOIN CHAT_ROOM_MEMBER rm ON rm.ROOM_ID = r.ROOM_ID AND rm.EMPLOYEE_ID = #{employeeId}
+        LEFT JOIN CHAT_MESSAGE lm ON lm.MESSAGE_ID = (
+            SELECT MAX(m2.MESSAGE_ID) FROM CHAT_MESSAGE m2 WHERE m2.ROOM_ID = r.ROOM_ID
+        )
+        LEFT JOIN CHAT_ROOM_MEMBER other_m ON r.ROOM_TYPE = 'DM'
+             AND other_m.ROOM_ID = r.ROOM_ID AND other_m.EMPLOYEE_ID != #{employeeId}
+        LEFT JOIN EMPLOYEE other ON other.EMPLOYEE_ID = other_m.EMPLOYEE_ID
+        LEFT JOIN DEPARTMENT od ON od.DEPT_ID = other.DEPT_ID
+        LEFT JOIN POSITION op ON op.POSITION_ID = other.POSITION_ID
+        ORDER BY COALESCE(lm.SENT_AT, r.CREATED_AT) DESC
+    </select>
+
+    <select id="selectRoomById" resultType="com.example.Groupware_Chat.DTO.ChatRoomDTO">
+        SELECT r.ROOM_ID AS roomId, r.ROOM_TYPE AS roomType, r.ROOM_NAME AS roomName, r.CREATED_AT AS createdAt,
+               other.EMPLOYEE_ID AS otherEmployeeId, other.EMPLOYEE_NAME AS otherEmployeeName,
+               od.DEPT_NAME AS otherDeptName, op.POSITION_NAME AS otherPositionName
+        FROM CHAT_ROOM r
+        LEFT JOIN CHAT_ROOM_MEMBER other_m ON r.ROOM_TYPE = 'DM'
+             AND other_m.ROOM_ID = r.ROOM_ID AND other_m.EMPLOYEE_ID != #{employeeId}
+        LEFT JOIN EMPLOYEE other ON other.EMPLOYEE_ID = other_m.EMPLOYEE_ID
+        LEFT JOIN DEPARTMENT od ON od.DEPT_ID = other.DEPT_ID
+        LEFT JOIN POSITION op ON op.POSITION_ID = other.POSITION_ID
+        WHERE r.ROOM_ID = #{roomId}
+          AND EXISTS (
+              SELECT 1 FROM CHAT_ROOM_MEMBER mine
+              WHERE mine.ROOM_ID = r.ROOM_ID AND mine.EMPLOYEE_ID = #{employeeId}
+          )
+    </select>
+
+    <select id="selectDmRoomId" resultType="java.lang.Integer">
+        SELECT rm1.ROOM_ID
+        FROM CHAT_ROOM_MEMBER rm1
+        JOIN CHAT_ROOM_MEMBER rm2 ON rm1.ROOM_ID = rm2.ROOM_ID
+        JOIN CHAT_ROOM r ON r.ROOM_ID = rm1.ROOM_ID
+        WHERE r.ROOM_TYPE = 'DM'
+          AND rm1.EMPLOYEE_ID = #{empId1}
+          AND rm2.EMPLOYEE_ID = #{empId2}
+        LIMIT 1
+    </select>
+
+    <insert id="insertRoom" parameterType="com.example.Groupware_Chat.DTO.ChatRoomDTO"
+            useGeneratedKeys="true" keyProperty="roomId">
+        INSERT INTO CHAT_ROOM (ROOM_TYPE, ROOM_NAME, CREATED_AT)
+        VALUES (#{roomType}, #{roomName}, NOW())
+    </insert>
+
+    <insert id="insertRoomMember">
+        INSERT INTO CHAT_ROOM_MEMBER (ROOM_ID, EMPLOYEE_ID, JOINED_AT)
+        VALUES (#{roomId}, #{employeeId}, NOW())
+    </insert>
+
+    <select id="selectRoomMembers" resultType="com.example.Groupware_Chat.DTO.ChatRoomMemberDTO">
+        SELECT cm.ROOM_ID AS roomId, cm.EMPLOYEE_ID AS employeeId, e.EMPLOYEE_NAME AS employeeName,
+               d.DEPT_NAME AS deptName, p.POSITION_NAME AS positionName,
+               cm.LAST_READ_MESSAGE_ID AS lastReadMessageId
+        FROM CHAT_ROOM_MEMBER cm
+        JOIN EMPLOYEE e ON e.EMPLOYEE_ID = cm.EMPLOYEE_ID
+        LEFT JOIN DEPARTMENT d ON d.DEPT_ID = e.DEPT_ID
+        LEFT JOIN POSITION p ON p.POSITION_ID = e.POSITION_ID
+        WHERE cm.ROOM_ID = #{roomId}
+    </select>
+
+    <update id="updateLastReadMessage">
+        UPDATE CHAT_ROOM_MEMBER
+        SET LAST_READ_MESSAGE_ID = #{messageId}
+        WHERE ROOM_ID = #{roomId} AND EMPLOYEE_ID = #{employeeId}
+    </update>
+
+    <select id="existsRoomMember" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM CHAT_ROOM_MEMBER
+        WHERE ROOM_ID = #{roomId} AND EMPLOYEE_ID = #{employeeId}
+    </select>
+
+    <!-- ===================== 메시지 ===================== -->
+
+    <insert id="insertMessage" parameterType="com.example.Groupware_Chat.DTO.ChatMessageDTO"
+            useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO CHAT_MESSAGE (ROOM_ID, SENDER_ID, MESSAGE_TYPE, CONTENT, SENT_AT)
+        VALUES (#{roomId}, #{senderId}, #{messageType}, #{content}, NOW())
+    </insert>
+
+    <select id="selectMessageById" resultType="com.example.Groupware_Chat.DTO.ChatMessageDTO">
+        SELECT m.MESSAGE_ID AS messageId, m.ROOM_ID AS roomId, m.SENDER_ID AS senderId,
+               e.EMPLOYEE_NAME AS senderName, p.POSITION_NAME AS senderPositionName,
+               m.MESSAGE_TYPE AS messageType, m.CONTENT AS content,
+               a.FILE_NAME AS fileName, a.FILE_PATH AS filePath, a.FILE_SIZE AS fileSize,
+               m.SENT_AT AS sentAt
+        FROM CHAT_MESSAGE m
+        LEFT JOIN EMPLOYEE e ON e.EMPLOYEE_ID = m.SENDER_ID
+        LEFT JOIN POSITION p ON p.POSITION_ID = e.POSITION_ID
+        LEFT JOIN CHAT_ATTACHMENT a ON a.MESSAGE_ID = m.MESSAGE_ID
+        WHERE m.MESSAGE_ID = #{messageId}
+    </select>
+
+    <insert id="insertAttachment">
+        INSERT INTO CHAT_ATTACHMENT (MESSAGE_ID, FILE_NAME, FILE_PATH, FILE_SIZE)
+        VALUES (#{messageId}, #{fileName}, #{filePath}, #{fileSize})
+    </insert>
+
+    <!-- 무한스크롤(과거 메시지 로딩)용: beforeMessageId가 있으면 그보다 이전 메시지, 최신순 -->
+    <select id="selectMessages" resultType="com.example.Groupware_Chat.DTO.ChatMessageDTO">
+        SELECT m.MESSAGE_ID AS messageId, m.ROOM_ID AS roomId, m.SENDER_ID AS senderId,
+               e.EMPLOYEE_NAME AS senderName, p.POSITION_NAME AS senderPositionName,
+               m.MESSAGE_TYPE AS messageType, m.CONTENT AS content,
+               a.FILE_NAME AS fileName, a.FILE_PATH AS filePath, a.FILE_SIZE AS fileSize,
+               m.SENT_AT AS sentAt
+        FROM CHAT_MESSAGE m
+        LEFT JOIN EMPLOYEE e ON e.EMPLOYEE_ID = m.SENDER_ID
+        LEFT JOIN POSITION p ON p.POSITION_ID = e.POSITION_ID
+        LEFT JOIN CHAT_ATTACHMENT a ON a.MESSAGE_ID = m.MESSAGE_ID
+        WHERE m.ROOM_ID = #{roomId}
+        <if test="beforeMessageId != null">
+            AND m.MESSAGE_ID &lt; #{beforeMessageId}
+        </if>
+        ORDER BY m.MESSAGE_ID DESC
+        LIMIT #{size}
+    </select>
+
+    <select id="selectLastReadMessageIdOfOthers" resultType="java.lang.Integer">
+        SELECT MIN(LAST_READ_MESSAGE_ID) FROM CHAT_ROOM_MEMBER
+        WHERE ROOM_ID = #{roomId} AND EMPLOYEE_ID != #{employeeId}
+    </select>
+
+</mapper>
