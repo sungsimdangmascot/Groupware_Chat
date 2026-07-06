@@ -1,0 +1,82 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework",
+    "module": "spring-beans",
+    "version": "7.0.8",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.5.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework",
+          "module": "spring-core",
+          "version": {
+            "requires": "7.0.8"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-beans-7.0.8.jar",
+          "url": "spring-beans-7.0.8.jar",
+          "size": 928037,
+          "sha512": "9a07a7bb2923a73992c0803909b8e572e582178a261b80b375a3872048785e80cf59bd105c4ea13533e33ebe7d317416fb7d77733e6176be490deba13899ba5c",
+          "sha256": "6ec2e361a8872a71d8b1ff66f1bcb8cfa29fcc437931998919da7cecfb59b45b",
+          "sha1": "829cdf4c82a9409e0e10922b9e57e2ef12d5f04d",
+          "md5": "a5b12361a4d3dc775677dbbea901e1d4"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework",
+          "module": "spring-core",
+          "version": {
+            "requires": "7.0.8"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-beans-7.0.8.jar",
+          "url": "spring-beans-7.0.8.jar",
+          "size": 928037,
+          "sha512": "9a07a7bb2923a73992c0803909b8e572e582178a261b80b375a3872048785e80cf59bd105c4ea13533e33ebe7d317416fb7d77733e6176be490deba13899ba5c",
+          "sha256": "6ec2e361a8872a71d8b1ff66f1bcb8cfa29fcc437931998919da7cecfb59b45b",
+          "sha1": "829cdf4c82a9409e0e10922b9e57e2ef12d5f04d",
+          "md5": "a5b12361a4d3dc775677dbbea901e1d4"
+        }
+      ]
+    }
+  ]
+}

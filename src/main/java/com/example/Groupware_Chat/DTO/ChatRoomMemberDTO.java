@@ -1,6 +1,7 @@
 package com.example.Groupware_Chat.DTO;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 public class ChatRoomMemberDTO {
@@ -10,5 +11,6 @@ public class ChatRoomMemberDTO {
     private String deptName;
     private String positionName;
     private Integer lastReadMessageId;
+    private LocalDateTime joinedAt;
     private boolean online;
 }

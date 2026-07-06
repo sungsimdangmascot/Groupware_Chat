@@ -1,0 +1,96 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework",
+    "module": "spring-core",
+    "version": "7.0.8",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.5.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "commons-logging",
+          "module": "commons-logging",
+          "version": {
+            "requires": "1.3.5"
+          }
+        },
+        {
+          "group": "org.jspecify",
+          "module": "jspecify",
+          "version": {
+            "requires": "1.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-core-7.0.8.jar",
+          "url": "spring-core-7.0.8.jar",
+          "size": 2035553,
+          "sha512": "4f965c06d657e724ffedae5a49c6a30b418d07e64988ebfce93280d7643dd1f6000cdc8970a32dc916da2fb917d8e005037e162872bc2c5cd324d4a75dc722a2",
+          "sha256": "726ba2a5130833644bdf267a55ff26e1f52e8dcc9aa1ffa06904ca9c14619f25",
+          "sha1": "025f5ebd179f92d7d12779e3761c96da4b0109ad",
+          "md5": "f7447e9f9ebd8d08c010ef9313666f2c"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "commons-logging",
+          "module": "commons-logging",
+          "version": {
+            "requires": "1.3.5"
+          }
+        },
+        {
+          "group": "org.jspecify",
+          "module": "jspecify",
+          "version": {
+            "requires": "1.0.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-core-7.0.8.jar",
+          "url": "spring-core-7.0.8.jar",
+          "size": 2035553,
+          "sha512": "4f965c06d657e724ffedae5a49c6a30b418d07e64988ebfce93280d7643dd1f6000cdc8970a32dc916da2fb917d8e005037e162872bc2c5cd324d4a75dc722a2",
+          "sha256": "726ba2a5130833644bdf267a55ff26e1f52e8dcc9aa1ffa06904ca9c14619f25",
+          "sha1": "025f5ebd179f92d7d12779e3761c96da4b0109ad",
+          "md5": "f7447e9f9ebd8d08c010ef9313666f2c"
+        }
+      ]
+    }
+  ]
+}

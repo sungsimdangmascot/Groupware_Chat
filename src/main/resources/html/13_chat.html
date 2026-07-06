@@ -178,6 +178,9 @@
                     <div class="chat-thread-status">개발팀 · 접속 중</div>
                   </div>
                 </div>
+                <button type="button" class="icon-btn chat-add-member-btn" title="멤버 추가" aria-label="멤버 추가">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
               </div>
 
               <div class="chat-messages">
@@ -198,11 +201,11 @@
                   <div class="chat-room-avatar">홍</div>
                   <div class="chat-bubble-col">
                     <div class="chat-bubble-meta">
-                      <div class="chat-bubble">네 팀장님, 지금 마무리 중입니다. 30분 내로 공유드릴게요!</div>
-                      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.15rem;">
+                      <div class="chat-bubble-state">
                         <span class="chat-bubble-read">읽음</span>
                         <span class="chat-bubble-time">오후 2:35</span>
                       </div>
+                      <div class="chat-bubble">네 팀장님, 지금 마무리 중입니다. 30분 내로 공유드릴게요!</div>
                     </div>
                   </div>
                 </div>
@@ -211,11 +214,11 @@
                   <div class="chat-room-avatar">홍</div>
                   <div class="chat-bubble-col">
                     <div class="chat-bubble-meta">
-                      <div class="chat-bubble-file"><i class="fa-solid fa-file-arrow-down" style="color:var(--color-primary);"></i> <div><div style="font-weight:600;">3분기_기획안_v2.pptx</div><div style="color:var(--text-muted); font-size:0.75rem;">4.2 MB</div></div></div>
-                      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.15rem;">
+                      <div class="chat-bubble-state">
                         <span class="chat-bubble-read">읽음</span>
                         <span class="chat-bubble-time">오후 2:36</span>
                       </div>
+                      <div class="chat-bubble-file"><i class="fa-solid fa-file-arrow-down" style="color:var(--color-primary);"></i> <div><div style="font-weight:600;">3분기_기획안_v2.pptx</div><div style="color:var(--text-muted); font-size:0.75rem;">4.2 MB</div></div></div>
                     </div>
                   </div>
                 </div>
@@ -267,11 +270,72 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content" id="modal-new-chat" style="display:none; max-width: 720px;">
+      <div class="modal-header">
+        <h3>새 대화 시작</h3>
+        <button type="button" class="icon-btn modal-close-btn" aria-label="닫기"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="chat-modal-help">부서를 클릭해 직원 목록을 필터링하고, 1명을 선택하면 1:1 대화, 2명 이상을 선택하면 그룹 대화가 시작됩니다.</p>
+        <div class="org-container" style="height: 360px;">
+          <div class="org-tree">
+            <ul style="list-style:none;">
+              <li><a class="org-node active">전체보기</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">인사팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">기획팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">개발팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">디자인팀</a></li>
+              <li style="margin-left: 0.75rem;"><a class="org-node">총무팀</a></li>
+            </ul>
+          </div>
+          <div class="org-members">
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 50px;"></th>
+                    <th>이름</th>
+                    <th>부서</th>
+                    <th>직급</th>
+                    <th>상태</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-cancel-btn">취소</button>
+        <button type="button" class="btn btn-primary">대화 시작</button>
+      </div>
+    </div>
+
+    <div class="modal-content" id="modal-rename-room" style="display:none; max-width: 420px;">
+      <div class="modal-header">
+        <h3>대화방 이름 변경</h3>
+        <button type="button" class="icon-btn modal-close-btn" aria-label="닫기"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="roomNameInput">대화방 이름</label>
+          <input type="text" class="form-control" id="roomNameInput" maxlength="80">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-cancel-btn">취소</button>
+        <button type="button" class="btn btn-primary room-name-save-btn">저장</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notifications Container -->
   <div id="toast-container" class="toast-container"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-  <script src="js/caht.js?v=20260705"></script>
+  <script src="js/caht.js?v=20260706-5"></script>
 
 </body></html>

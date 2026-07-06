@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="com.simplechat.mapper.ChatMapper">
+	<!-- 메시지 저장 -->
+	<insert id="insertMessage" parameterType="com.simplechat.dto.ChatMessageDTO">
+		INSERT INTO CHAT_MESSAGE(ROOM_ID, SENDER, CONTENT, MESSAGE_TYPE)
+			VALUES(#{roomId}, #{sender}, #{content}, #{messageType})
+	</insert>
+
+	<select id="findRecentMessages" parameterType="int"
+		resultType="com.simplechat.dto.ChatMessageDTO">
+	<!-- 특정 방의 '최근 50개'를 시간순(오래된->최신)으로 조회 -->
+	SELECT ROOM_ID, SENDER, CONTENT, MESSAGE_TYPE
+	FROM(
+		<!-- 최근 50개 무엇인지 조회(최신순으로 잘라냄)-->
+		SELECT CHAT_ID, ROOM_ID, SENDER, CONTENT, MESSAGE_TYPE
+		FROM  CHAT_MESSAGE
+		WHERE ROOM_ID = #{roomId}
+		ORDER BY CHAT_ID DESC
+		LIMIT 50
+	) recent ORDER BY CHAT_ID ASC
+	<!-- 골라낸 50개를 '보여줄 순서'로 다시 뒤집는다(옛날->최신) -->
+	</select>
+	
+
+</mapper>
+
+
+
+
+
+

@@ -31,6 +31,10 @@ public interface ChatMapper {
 
     void insertRoomMember(@Param("roomId") Integer roomId, @Param("employeeId") Integer employeeId);
 
+    void updateRoomAsGroup(@Param("roomId") Integer roomId, @Param("roomName") String roomName);
+
+    void updateRoomName(@Param("roomId") Integer roomId, @Param("roomName") String roomName);
+
     List<ChatRoomMemberDTO> selectRoomMembers(@Param("roomId") Integer roomId);
 
     void updateLastReadMessage(@Param("roomId") Integer roomId,

@@ -39,6 +39,7 @@
             lm.SENT_AT       AS lastMessageTime,
             (SELECT COUNT(*) FROM CHAT_MESSAGE m
               WHERE m.ROOM_ID = r.ROOM_ID
+                AND m.SENT_AT >= rm.JOINED_AT
                 AND (rm.LAST_READ_MESSAGE_ID IS NULL OR m.MESSAGE_ID > rm.LAST_READ_MESSAGE_ID)
                 AND (m.SENDER_ID IS NULL OR m.SENDER_ID != #{employeeId})
             ) AS unreadCount,
@@ -99,10 +100,27 @@
         VALUES (#{roomId}, #{employeeId}, NOW())
     </insert>
 
+    <update id="updateRoomAsGroup">
+        UPDATE CHAT_ROOM
+        SET ROOM_TYPE = 'GROUP',
+            ROOM_NAME = CASE
+                WHEN ROOM_NAME IS NULL OR TRIM(ROOM_NAME) = '' THEN #{roomName}
+                ELSE ROOM_NAME
+            END
+        WHERE ROOM_ID = #{roomId}
+    </update>
+
+    <update id="updateRoomName">
+        UPDATE CHAT_ROOM
+        SET ROOM_NAME = #{roomName}
+        WHERE ROOM_ID = #{roomId}
+    </update>
+
     <select id="selectRoomMembers" resultType="com.example.Groupware_Chat.DTO.ChatRoomMemberDTO">
         SELECT cm.ROOM_ID AS roomId, cm.EMPLOYEE_ID AS employeeId, e.EMPLOYEE_NAME AS employeeName,
                d.DEPT_NAME AS deptName, p.POSITION_NAME AS positionName,
-               cm.LAST_READ_MESSAGE_ID AS lastReadMessageId
+               cm.LAST_READ_MESSAGE_ID AS lastReadMessageId,
+               cm.JOINED_AT AS joinedAt
         FROM CHAT_ROOM_MEMBER cm
         JOIN EMPLOYEE e ON e.EMPLOYEE_ID = cm.EMPLOYEE_ID
         LEFT JOIN DEPARTMENT d ON d.DEPT_ID = e.DEPT_ID
@@ -112,7 +130,10 @@
 
     <update id="updateLastReadMessage">
         UPDATE CHAT_ROOM_MEMBER
-        SET LAST_READ_MESSAGE_ID = #{messageId}
+        SET LAST_READ_MESSAGE_ID = CASE
+            WHEN LAST_READ_MESSAGE_ID IS NULL OR LAST_READ_MESSAGE_ID &lt; #{messageId} THEN #{messageId}
+            ELSE LAST_READ_MESSAGE_ID
+        END
         WHERE ROOM_ID = #{roomId} AND EMPLOYEE_ID = #{employeeId}
     </update>
 

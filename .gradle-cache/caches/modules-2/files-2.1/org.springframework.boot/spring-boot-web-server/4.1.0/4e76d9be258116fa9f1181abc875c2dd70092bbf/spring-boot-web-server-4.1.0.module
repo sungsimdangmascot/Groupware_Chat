@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.springframework.boot",
+    "module": "spring-boot-web-server",
+    "version": "4.1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.5.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.1.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-web",
+          "version": {
+            "requires": "7.0.8"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-web-server-4.1.0.jar",
+          "url": "spring-boot-web-server-4.1.0.jar",
+          "size": 171609,
+          "sha512": "3d9e13e1a82942c2e42266535c75af035c2f3696909045f81976b90094bf5f1cbf8678f6e53fab55e3c15c422866e8ac3bed232bd3397f4e6e2e17f4cc02c180",
+          "sha256": "a8541ccbd29f5a8db7e6092fa83463aa4d1c002fac07b8b5babe118ad6c4a3d3",
+          "sha1": "e67513b382c2cef7b8bc364e8e85cd7f0940e331",
+          "md5": "14bde7217b4097bdb027bfd6d064b719"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.springframework.boot",
+          "module": "spring-boot",
+          "version": {
+            "requires": "4.1.0"
+          }
+        },
+        {
+          "group": "org.springframework",
+          "module": "spring-web",
+          "version": {
+            "requires": "7.0.8"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "spring-boot-web-server-4.1.0.jar",
+          "url": "spring-boot-web-server-4.1.0.jar",
+          "size": 171609,
+          "sha512": "3d9e13e1a82942c2e42266535c75af035c2f3696909045f81976b90094bf5f1cbf8678f6e53fab55e3c15c422866e8ac3bed232bd3397f4e6e2e17f4cc02c180",
+          "sha256": "a8541ccbd29f5a8db7e6092fa83463aa4d1c002fac07b8b5babe118ad6c4a3d3",
+          "sha1": "e67513b382c2cef7b8bc364e8e85cd7f0940e331",
+          "md5": "14bde7217b4097bdb027bfd6d064b719"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-web-server-4.1.0-javadoc.jar",
+          "url": "spring-boot-web-server-4.1.0-javadoc.jar",
+          "size": 415471,
+          "sha512": "413113f438b91addce66ecc0c863d50bdd8e2f2a7033414206e53c8e6f99ce748d9f191056d98ff750c71df2edd3f64492322e6f99f5f18e1fc39483d862f496",
+          "sha256": "7c5013407c15f1642da7863a8b58b8be8a02950054fd10e1a0773ea2cd1b69ff",
+          "sha1": "c8dd91e43113ca67b836699dff91e38c2ab0c375",
+          "md5": "46117f9827346646cf856a6907824e0b"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "spring-boot-web-server-4.1.0-sources.jar",
+          "url": "spring-boot-web-server-4.1.0-sources.jar",
+          "size": 129968,
+          "sha512": "9e7889c1d9bd3eff4653f379392b22b83090330c8664d0c374db7b6cb7fbb282136af08309cca094e539e5d264cffcaf9b514b620c1eabcc5329c940d38a99f4",
+          "sha256": "4b95367ce932a4ec51ede71743d5de9796c772388623a87e2abd5b2879017a45",
+          "sha1": "505f3e140e2b224f6e9b5093dac4761e5d6d0feb",
+          "md5": "89e04ed7fcfac052656bc58d00bc2f32"
+        }
+      ]
+    }
+  ]
+}

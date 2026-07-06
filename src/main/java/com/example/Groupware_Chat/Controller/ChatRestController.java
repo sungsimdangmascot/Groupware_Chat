@@ -139,6 +139,49 @@ public class ChatRestController {
         return chatService.getRoomMembers(roomId);
     }
 
+    @PostMapping("/rooms/{roomId}/members")
+    public List<ChatMessageDTO> addMembers(HttpSession session,
+                                           @PathVariable Integer roomId,
+                                           @RequestBody ChatRoomCreateRequestDTO request) {
+        Integer employeeId = currentEmployeeId(session);
+        List<ChatMessageDTO> systemMessages;
+        try {
+            systemMessages = chatService.addRoomMembers(roomId, employeeId, request);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+
+        List<ChatRoomMemberDTO> members = chatService.getRoomMembers(roomId);
+        for (ChatMessageDTO message : systemMessages) {
+            messagingTemplate.convertAndSend("/topic/room/" + roomId, message);
+        }
+        Object readPayload = Map.of("roomId", roomId, "members", members);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/read", readPayload);
+        notifyRoomMembers(roomId, "members-added");
+        return systemMessages;
+    }
+
+    @PostMapping("/rooms/{roomId}/name")
+    public ChatRoomDTO renameRoom(HttpSession session,
+                                  @PathVariable Integer roomId,
+                                  @RequestBody ChatRoomCreateRequestDTO request) {
+        Integer employeeId = currentEmployeeId(session);
+        ChatRoomDTO room;
+        try {
+            room = chatService.renameRoom(roomId, employeeId, request.getRoomName());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/room", room);
+        notifyRoomMembers(roomId, "room-renamed");
+        return room;
+    }
+
     @GetMapping("/rooms/{roomId}/messages")
     public List<ChatMessageDTO> messages(HttpSession session,
                                           @PathVariable Integer roomId,
@@ -152,7 +195,8 @@ public class ChatRestController {
                             @RequestParam Integer lastMessageId) {
         Integer employeeId = currentEmployeeId(session);
         chatService.markAsRead(roomId, employeeId, lastMessageId);
-        Object payload = Map.of("roomId", roomId, "employeeId", employeeId, "lastMessageId", lastMessageId);
+        Object payload = Map.of("roomId", roomId, "employeeId", employeeId, "lastMessageId", lastMessageId,
+                "members", chatService.getRoomMembers(roomId));
         messagingTemplate.convertAndSend("/topic/room/" + roomId + "/read", payload);
     }
 

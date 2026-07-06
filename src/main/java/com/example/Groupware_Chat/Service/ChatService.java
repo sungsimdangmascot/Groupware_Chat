@@ -13,6 +13,8 @@ public interface ChatService {
     ChatRoomDTO getRoom(Integer roomId, Integer employeeId);
     List<ChatRoomMemberDTO> getRoomMembers(Integer roomId);
     ChatRoomDTO createOrGetRoom(Integer myEmployeeId, ChatRoomCreateRequestDTO request);
+    List<ChatMessageDTO> addRoomMembers(Integer roomId, Integer actorEmployeeId, ChatRoomCreateRequestDTO request);
+    ChatRoomDTO renameRoom(Integer roomId, Integer employeeId, String roomName);
     List<ChatMessageDTO> getMessages(Integer roomId, Integer employeeId, Integer beforeMessageId, int size);
     ChatMessageDTO sendMessage(Integer roomId, Integer senderId, ChatMessageRequestDTO request);
     void markAsRead(Integer roomId, Integer employeeId, Integer lastMessageId);

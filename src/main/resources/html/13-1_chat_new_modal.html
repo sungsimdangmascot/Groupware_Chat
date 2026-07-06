@@ -113,6 +113,9 @@
                     <div class="chat-thread-status">개발팀 · 접속 중</div>
                   </div>
                 </div>
+                <button type="button" class="icon-btn chat-add-member-btn" title="멤버 추가" aria-label="멤버 추가">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
               </div>
               <div class="chat-messages"></div>
               <form class="chat-input-bar">
@@ -136,11 +139,11 @@
     <!-- New Chat Modal (열림 상태 - 개발팀 필터 + 정진국 사원 선택 예시) -->
     <div class="modal-content" id="modal-new-chat" style="display:block; max-width: 720px;">
       <div class="modal-header">
-        <h3>새 대화 시작</h3>
+        <h3>멤버 추가</h3>
         <a class="icon-btn" href="13_chat.html"><i class="fa-solid fa-xmark"></i></a>
       </div>
       <div class="modal-body">
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">부서를 클릭해 직원 목록을 필터링하고, 1명을 선택하면 1:1 대화, 2명 이상을 선택하면 그룹 대화가 시작됩니다.</p>
+        <p class="chat-modal-help">부서를 클릭해 직원 목록을 필터링하고, 기존 참여자는 참여중으로 표시됩니다.</p>
         <div class="org-container" style="height: 360px;">
           <div class="org-tree">
             <ul style="list-style:none;">
@@ -165,12 +168,19 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td style="text-align:center;"><input type="checkbox" checked></td>
+                  <tr class="is-current-member">
+                    <td style="text-align:center;"><input type="checkbox" checked disabled></td>
                     <td><strong>김우주</strong></td>
                     <td>개발팀</td>
                     <td><span class="badge badge-primary">팀장</span></td>
-                    <td><span class="badge badge-success">접속 중</span></td>
+                    <td><span class="badge badge-muted">참여중</span></td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:center;"><input type="checkbox" checked></td>
+                    <td><strong>정진국</strong></td>
+                    <td>개발팀</td>
+                    <td><span class="badge badge-primary">사원</span></td>
+                    <td><span class="badge badge-success">접속 가능</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -180,7 +190,7 @@
       </div>
       <div class="modal-footer">
         <a class="btn btn-secondary" href="13_chat.html">취소</a>
-        <a class="btn btn-primary" href="13_chat.html">대화 시작</a>
+        <a class="btn btn-primary" href="13_chat.html">추가</a>
       </div>
     </div>
 
@@ -191,6 +201,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-  <script src="js/caht.js?v=20260705"></script>
+  <script src="js/caht.js?v=20260706-5"></script>
   
 </body></html>

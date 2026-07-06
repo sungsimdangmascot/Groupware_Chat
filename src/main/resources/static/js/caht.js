@@ -8,6 +8,10 @@
   let allRooms = [];
   let activeRoomFilter = '전체';
   let roomSearchKeyword = '';
+  let currentRoom = null;
+  let currentRoomMembers = [];
+  let inputComposing = false;
+  let openingRoom = false;
 
   const roomListEl = document.querySelector('.chat-room-list');
   const messagesEl = document.querySelector('.chat-messages');
@@ -16,6 +20,8 @@
   const threadWho = document.querySelector('.chat-thread-who');
   const roomSearchEl = document.querySelector('.chat-sidebar input[placeholder*="검색"]');
   const headerChatBadgeEl = document.querySelector('#headerChatBadge');
+
+  window.ChatApp = { openRoom, getCurrentRoomId, getCurrentRoomMembers, getCurrentRoomName, refreshActiveRoom };
 
   document.addEventListener('DOMContentLoaded', init);
 
@@ -37,6 +43,14 @@
 
   function bindEvents() {
     if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+    if (roomListEl) {
+      roomListEl.addEventListener('mousedown', event => {
+        const item = event.target.closest('.chat-room-item');
+        if (!item || !roomListEl.contains(item) || !item.dataset.roomId) return;
+        event.preventDefault();
+        openRoom(item.dataset.roomId, true);
+      });
+    }
     if (roomSearchEl) {
       roomSearchEl.addEventListener('input', () => {
         roomSearchKeyword = roomSearchEl.value.trim().toLowerCase();
@@ -60,8 +74,15 @@
     }
     if (!inputEl) return;
 
+    inputEl.addEventListener('compositionstart', () => {
+      inputComposing = true;
+    });
+    inputEl.addEventListener('compositionend', () => {
+      inputComposing = false;
+    });
     inputEl.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
+        if (inputComposing || e.isComposing || e.keyCode === 229) return;
         e.preventDefault();
         sendMessage();
       }
@@ -154,7 +175,6 @@
           </div>
         </div>`;
 
-      item.addEventListener('click', () => openRoom(room.roomId, true));
       roomListEl.appendChild(item);
     });
   }
@@ -168,6 +188,8 @@
 
   async function openRoom(roomId, subscribe) {
     if (!roomId) return;
+    if (openingRoom && String(currentRoomId) === String(roomId)) return;
+    openingRoom = true;
     currentRoomId = roomId;
 
     document.querySelectorAll('.chat-room-item').forEach(el => {
@@ -175,11 +197,14 @@
     });
 
     try {
-      const [room, messages] = await Promise.all([
+      const [room, messages, members] = await Promise.all([
         apiJson(`/api/chat/rooms/${roomId}`),
-        apiJson(`/api/chat/rooms/${roomId}/messages?size=50`)
+        apiJson(`/api/chat/rooms/${roomId}/messages?size=50`),
+        apiJson(`/api/chat/rooms/${roomId}/members`)
       ]);
 
+      currentRoom = room;
+      currentRoomMembers = members;
       renderThreadHeader(room);
       renderMessages(messages);
 
@@ -191,6 +216,8 @@
       }
     } catch (error) {
       showChatError('채팅방 메시지를 불러오지 못했습니다.');
+    } finally {
+      openingRoom = false;
     }
   }
 
@@ -284,6 +311,9 @@
       if (!message) return;
 
       removeEmptyMessage();
+      if (message.messageType === 'SYSTEM') {
+        refreshRoomMembers();
+      }
       appendMessage(message, String(message.senderId) === myEmployeeId);
       scrollToBottom();
 
@@ -300,13 +330,26 @@
 
     roomSubscriptions.push(stomp.subscribe(`/topic/room/${roomId}/read`, frame => {
       const payload = parseJson(frame.body);
-      if (!payload || String(payload.employeeId) === myEmployeeId) return;
-      updateReadMarks(payload.lastMessageId);
+      if (!payload) return;
+      if (payload.members) {
+        currentRoomMembers = payload.members;
+      }
+      if (String(payload.employeeId) !== myEmployeeId || payload.members) {
+        updateReadMarks();
+      }
+    }));
+
+    roomSubscriptions.push(stomp.subscribe(`/topic/room/${roomId}/room`, frame => {
+      const room = parseJson(frame.body);
+      if (!room) return;
+      currentRoom = room;
+      renderThreadHeader(room);
       loadRoomList();
     }));
   }
 
   function sendMessage() {
+    if (inputComposing) return;
     const text = inputEl ? inputEl.value.trim() : '';
     if (!text || !currentRoomId) return;
 
@@ -371,9 +414,18 @@
   function appendMessage(message, isMine) {
     if (!messagesEl) return;
 
+    if (message.messageType === 'SYSTEM') {
+      const system = document.createElement('div');
+      system.className = 'chat-system-message';
+      system.textContent = `— ${message.content || ''} —`;
+      messagesEl.appendChild(system);
+      return;
+    }
+
     const row = document.createElement('div');
     row.className = 'chat-row ' + (isMine ? 'out' : 'in');
     if (message.messageId) row.dataset.messageId = message.messageId;
+    if (message.sentAt) row.dataset.sentAt = message.sentAt;
 
     const senderName = message.senderName || (isMine ? '나' : '상대');
     const avatarChar = senderName.charAt(0) || '?';
@@ -385,15 +437,16 @@
       : `<div class="chat-bubble">${escapeHtml(message.content || '')}</div>`;
 
     if (isMine) {
+      const readLabel = getReadLabel(message);
       row.innerHTML = `
         <div class="chat-room-avatar">${escapeHtml(avatarChar)}</div>
         <div class="chat-bubble-col">
           <div class="chat-bubble-meta">
-            ${bubbleContent}
-            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.15rem;">
-              <span class="chat-bubble-read" style="${message.read ? '' : 'display:none;'}">읽음</span>
+            <div class="chat-bubble-state">
+              <span class="chat-bubble-read${readLabel === '읽음' ? '' : ' unread'}" style="${readLabel ? '' : 'display:none;'}">${escapeHtml(readLabel)}</span>
               <span class="chat-bubble-time">${formatClock(message.sentAt)}</span>
             </div>
+            ${bubbleContent}
           </div>
         </div>`;
     } else {
@@ -538,17 +591,64 @@
 
   function markAsRead(roomId, lastMessageId) {
     if (!lastMessageId) return;
-    fetch(`/api/chat/rooms/${roomId}/read?lastMessageId=${lastMessageId}`, { method: 'POST' });
+    fetch(`/api/chat/rooms/${roomId}/read?lastMessageId=${lastMessageId}`, { method: 'POST' })
+      .catch(error => console.warn('읽음 상태 갱신 요청 실패', error));
   }
 
-  function updateReadMarks(lastMessageId) {
+  function updateReadMarks() {
     document.querySelectorAll('.chat-row.out').forEach(row => {
       const messageId = Number(row.dataset.messageId || 0);
-      if (messageId && messageId <= Number(lastMessageId)) {
-        const read = row.querySelector('.chat-bubble-read');
-        if (read) read.style.display = '';
-      }
+      const read = row.querySelector('.chat-bubble-read');
+      if (!messageId || !read) return;
+      const label = getReadLabel({
+        messageId,
+        senderId: Number(myEmployeeId),
+        sentAt: row.dataset.sentAt
+      });
+      read.textContent = label;
+      read.style.display = label ? '' : 'none';
+      read.classList.toggle('unread', label !== '읽음' && label !== '');
     });
+  }
+
+  async function refreshRoomMembers() {
+    if (!currentRoomId) return;
+    try {
+      const [room, members] = await Promise.all([
+        apiJson(`/api/chat/rooms/${currentRoomId}`),
+        apiJson(`/api/chat/rooms/${currentRoomId}/members`)
+      ]);
+      currentRoom = room;
+      currentRoomMembers = members;
+      renderThreadHeader(room);
+      updateReadMarks();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function getReadLabel(message) {
+    const unreadCount = getUnreadCount(message);
+    if (currentRoom && currentRoom.roomType === 'GROUP') {
+      return unreadCount === 0 ? '' : String(unreadCount);
+    }
+    if (unreadCount === 0) return '읽음';
+    return '안읽음';
+  }
+
+  function getUnreadCount(message) {
+    if (!currentRoomMembers.length) {
+      return message.read ? 0 : 1;
+    }
+
+    const messageId = Number(message.messageId || 0);
+    const sentAt = message.sentAt ? new Date(message.sentAt) : null;
+    return currentRoomMembers.filter(member => {
+      if (String(member.employeeId) === myEmployeeId) return false;
+      if (message.senderId && String(member.employeeId) === String(message.senderId)) return false;
+      if (sentAt && member.joinedAt && new Date(member.joinedAt) > sentAt) return false;
+      return !member.lastReadMessageId || Number(member.lastReadMessageId) < messageId;
+    }).length;
   }
 
   function updateOnlineDot(employeeId, online) {
@@ -632,43 +732,241 @@
     return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
   }
 
-  window.ChatApp = { openRoom };
+  function getCurrentRoomId() {
+    return currentRoomId;
+  }
+
+  function getCurrentRoomMembers() {
+    return currentRoomMembers;
+  }
+
+  function getCurrentRoomName() {
+    return currentRoom ? currentRoom.roomName || '대화방' : '대화방';
+  }
+
+  async function refreshActiveRoom() {
+    if (currentRoomId) {
+      await openRoom(currentRoomId, true);
+      await loadRoomList();
+    }
+  }
+  window.ChatApp = { openRoom, getCurrentRoomId, getCurrentRoomMembers, getCurrentRoomName, refreshActiveRoom };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
+  const modalOverlay = document.querySelector('#modalOverlay');
+  const modal = document.querySelector('#modal-new-chat');
+  const renameModal = document.querySelector('#modal-rename-room');
   const newChatButton = document.querySelector('#modal-new-chat .btn-primary');
-  if (!newChatButton) return;
+  const renameInput = document.querySelector('#roomNameInput');
+  const renameSaveButton = document.querySelector('#modal-rename-room .room-name-save-btn');
+  if (!modalOverlay || !modal || !newChatButton) return;
+
+  const titleEl = modal.querySelector('.modal-header h3');
+  const helpEl = modal.querySelector('.chat-modal-help') || modal.querySelector('.modal-body p');
+  const sidebarNewChatLink = document.querySelector('.chat-sidebar-header a[title="새 대화 시작"]');
+  const closeButtons = modalOverlay.querySelectorAll('.modal-close-btn, .modal-cancel-btn, .modal-header .icon-btn, .modal-footer .btn-secondary');
   let modalEmployees = [];
   let selectedDept = '전체보기';
+  let modalMode = 'new';
+  let currentMemberIds = new Set();
 
-  loadNewChatMembers();
   bindDepartmentFilter();
+
+  if (modalOverlay.classList.contains('active')) {
+    openNewChat();
+  }
+
+  if (sidebarNewChatLink) {
+    sidebarNewChatLink.addEventListener('click', event => {
+      if (!modal) return;
+      event.preventDefault();
+      openNewChat();
+    });
+  }
+
+  document.addEventListener('click', event => {
+    const addButton = event.target.closest('.chat-add-member-btn');
+    if (addButton) {
+      event.preventDefault();
+      openAddMember();
+      return;
+    }
+
+    const who = event.target.closest('.chat-thread-who');
+    if (who) {
+      event.preventDefault();
+      openRenameRoom();
+    }
+  });
+
+  closeButtons.forEach(button => {
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      closeModal();
+    });
+  });
 
   newChatButton.addEventListener('click', e => {
     e.preventDefault();
-    const checked = [...document.querySelectorAll('#modal-new-chat tbody input[type=checkbox]:checked')];
+    const checked = [...document.querySelectorAll('#modal-new-chat tbody input[type=checkbox]:checked:not(:disabled)')];
     const targetEmployeeIds = checked
       .map(cb => cb.closest('tr'))
       .filter(row => row && row.dataset.employeeId)
       .map(row => Number(row.dataset.employeeId));
 
     if (targetEmployeeIds.length === 0) {
-      alert('대화 상대를 선택해주세요.');
+      alert(modalMode === 'add' ? '추가할 멤버를 선택해주세요.' : '대화 상대를 선택해주세요.');
       return;
     }
 
-    fetch('/api/chat/rooms', {
+    const roomId = window.ChatApp && window.ChatApp.getCurrentRoomId
+      ? window.ChatApp.getCurrentRoomId()
+      : null;
+    const url = modalMode === 'add' ? `/api/chat/rooms/${roomId}/members` : '/api/chat/rooms';
+
+    if (modalMode === 'add' && !roomId) {
+      alert('먼저 대화방을 선택해주세요.');
+      return;
+    }
+
+    fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetEmployeeIds })
     })
       .then(res => {
-        if (!res.ok) throw new Error('채팅방 생성 실패');
+        if (!res.ok) throw new Error(modalMode === 'add' ? '멤버 추가 실패' : '채팅방 생성 실패');
         return res.json();
       })
-      .then(room => { window.location.href = `13_chat.html?roomId=${room.roomId}`; })
-      .catch(() => alert('채팅방을 만들지 못했습니다. DB 연결과 로그인 세션을 확인해주세요.'));
+      .then(result => {
+        if (modalMode === 'add') {
+          closeModal();
+          if (window.ChatApp && window.ChatApp.refreshActiveRoom) {
+            window.ChatApp.refreshActiveRoom();
+          }
+          return;
+        }
+        window.location.href = `13_chat.html?roomId=${result.roomId}`;
+      })
+      .catch(() => alert(modalMode === 'add'
+        ? '멤버를 추가하지 못했습니다. 이미 참여 중인지 확인해주세요.'
+        : '채팅방을 만들지 못했습니다. DB 연결과 로그인 세션을 확인해주세요.'));
   });
+
+  if (renameSaveButton) {
+    renameSaveButton.addEventListener('click', saveRoomName);
+  }
+
+  if (renameInput) {
+    renameInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveRoomName();
+      }
+    });
+  }
+
+  function openNewChat() {
+    modalMode = 'new';
+    currentMemberIds = new Set();
+    selectedDept = '전체보기';
+    setModalText('새 대화 시작', '부서를 클릭해 직원 목록을 필터링하고, 1명을 선택하면 1:1 대화, 2명 이상을 선택하면 그룹 대화가 시작됩니다.', '대화 시작');
+    openModal();
+  }
+
+  function openAddMember() {
+    modalMode = 'add';
+    const members = window.ChatApp && window.ChatApp.getCurrentRoomMembers
+      ? window.ChatApp.getCurrentRoomMembers()
+      : [];
+    currentMemberIds = new Set(members.map(member => String(member.employeeId)));
+    selectedDept = '전체보기';
+    setModalText('멤버 추가', '부서를 클릭해 직원 목록을 필터링하고, 기존 참여자는 참여중으로 표시됩니다.', '추가');
+    openModal();
+  }
+
+  function openModal() {
+    if (renameModal) renameModal.style.display = 'none';
+    document.querySelectorAll('#modal-new-chat .org-node').forEach(node => {
+      node.classList.toggle('active', node.textContent.trim() === '전체보기');
+    });
+    modal.style.display = 'block';
+    modalOverlay.classList.add('active');
+    loadNewChatMembers();
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('active');
+    modal.style.display = 'none';
+    if (renameModal) renameModal.style.display = 'none';
+  }
+
+  function openRenameRoom() {
+    if (!renameModal || !renameInput) return;
+    const roomId = getSelectedRoomId();
+    if (!roomId) {
+      alert('먼저 대화방을 선택해주세요.');
+      return;
+    }
+
+    modal.style.display = 'none';
+    renameModal.style.display = 'block';
+    renameInput.value = window.ChatApp && window.ChatApp.getCurrentRoomName
+      ? window.ChatApp.getCurrentRoomName()
+      : getHeaderRoomName();
+    modalOverlay.classList.add('active');
+    renameInput.focus();
+    renameInput.select();
+  }
+
+  function saveRoomName() {
+    if (!renameInput) return;
+    const roomId = getSelectedRoomId();
+    const roomName = renameInput.value.trim();
+    if (!roomId) {
+      alert('먼저 대화방을 선택해주세요.');
+      return;
+    }
+    if (!roomName) {
+      alert('대화방 이름을 입력해주세요.');
+      return;
+    }
+
+    fetch(`/api/chat/rooms/${roomId}/name`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomName })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('대화방 이름 변경 실패');
+        return res.json();
+      })
+      .then(() => {
+        closeModal();
+        if (window.ChatApp && window.ChatApp.refreshActiveRoom) {
+          window.ChatApp.refreshActiveRoom();
+        }
+      })
+      .catch(() => alert('대화방 이름을 변경하지 못했습니다.'));
+  }
+
+  function getSelectedRoomId() {
+    if (window.ChatApp && window.ChatApp.getCurrentRoomId && window.ChatApp.getCurrentRoomId()) {
+      return window.ChatApp.getCurrentRoomId();
+    }
+    return document.querySelector('.chat-room-item.active')?.dataset.roomId || null;
+  }
+
+  function getHeaderRoomName() {
+    return document.querySelector('.chat-thread-who [style*="font-weight"]')?.textContent.trim() || '';
+  }
+
+  function setModalText(title, help, primaryText) {
+    if (titleEl) titleEl.textContent = title;
+    if (helpEl) helpEl.textContent = help;
+    newChatButton.textContent = primaryText;
+  }
 
   async function loadNewChatMembers() {
     const tbody = document.querySelector('#modal-new-chat tbody');
@@ -717,14 +1015,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     tbody.innerHTML = employees.map(employee => `
-      <tr data-employee-id="${employee.employeeId}">
-        <td style="text-align:center;"><input type="checkbox"></td>
+      <tr data-employee-id="${employee.employeeId}" class="${isCurrentMember(employee) ? 'is-current-member' : ''}">
+        <td style="text-align:center;"><input type="checkbox" ${isCurrentMember(employee) ? 'checked disabled' : ''}></td>
         <td><strong>${escapeModalHtml(employee.employeeName)}</strong></td>
         <td>${escapeModalHtml(employee.deptName || '-')}</td>
         <td><span class="badge badge-primary">${escapeModalHtml(employee.positionName || '-')}</span></td>
-        <td><span class="badge badge-success">접속 가능</span></td>
+        <td>${isCurrentMember(employee) ? '<span class="badge badge-muted">참여중</span>' : '<span class="badge badge-success">접속 가능</span>'}</td>
       </tr>
     `).join('');
+  }
+
+  function isCurrentMember(employee) {
+    return modalMode === 'add' && currentMemberIds.has(String(employee.employeeId));
   }
 
   function escapeModalHtml(value) {
@@ -736,4 +1038,6 @@ document.addEventListener('DOMContentLoaded', () => {
       "'": '&#39;'
     }[ch]));
   }
+
+  window.ChatModal = { openNewChat, openAddMember };
 });
